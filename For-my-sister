@@ -16,7 +16,7 @@
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         /* Giriş Paneli */
@@ -29,6 +29,18 @@
             transition: 0.5s;
             max-width: 350px;
             width: 90%;
+            position: relative;
+        }
+
+        /* Hata durumunda sallanma animasyonu */
+        .shake {
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
 
         .envelope-icon {
@@ -44,8 +56,6 @@
             60% {transform: translateY(-10px);}
         }
 
-        h3 { color: #d53f8c; margin-bottom: 20px; }
-
         input {
             padding: 12px;
             width: 80%;
@@ -54,10 +64,7 @@
             outline: none;
             font-size: 1rem;
             text-align: center;
-            transition: 0.3s;
         }
-
-        input:focus { border-color: #d53f8c; }
 
         button {
             padding: 12px 30px;
@@ -68,11 +75,17 @@
             cursor: pointer;
             margin-top: 20px;
             font-weight: bold;
-            box-shadow: 0 4px 15px rgba(213, 63, 140, 0.3);
             transition: 0.3s;
         }
 
-        button:hover { transform: translateY(-3px); background: #b83280; }
+        #error-msg {
+            color: #e53e3e;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            height: 20px; /* Yer tutması için */
+            opacity: 0;
+            transition: 0.3s;
+        }
 
         /* Mesaj İçeriği */
         #secret-content {
@@ -83,54 +96,17 @@
             padding: 50px;
             border-radius: 20px;
             box-shadow: 0 25px 50px rgba(0,0,0,0.1);
-            position: relative;
             background-image: radial-gradient(#fed7e2 1px, transparent 1px);
             background-size: 20px 20px;
             border: 2px solid #fbb6ce;
+            animation: fadeIn 1s;
         }
 
-        h2 { 
-            font-family: 'Dancing Script', cursive;
-            color: #b83280; 
-            font-size: 2.5rem;
-            margin-top: 0;
-            text-align: center;
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .long-message {
-            color: #4a5568;
-            line-height: 1.8;
-            font-size: 1.1rem;
-            text-align: left;
-            white-space: pre-line;
-            border-top: 1px solid #fed7e2;
-            padding-top: 20px;
-        }
-
-        .signature {
-            font-family: 'Dancing Script', cursive;
-            font-size: 1.8rem;
-            color: #d53f8c;
-            text-align: right;
-            margin-top: 30px;
-        }
-
-        .heart-badge {
-            position: absolute;
-            top: -25px;
-            right: -25px;
-            background: #ff4d6d;
-            color: white;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-size: 30px;
-            transform: rotate(15deg);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
+        h2 { font-family: 'Dancing Script', cursive; color: #b83280; font-size: 2.5rem; text-align: center; }
+        .long-message { color: #4a5568; line-height: 1.8; white-space: pre-line; border-top: 1px solid #fed7e2; padding-top: 20px; }
+        .signature { font-family: 'Dancing Script', cursive; font-size: 1.8rem; color: #d53f8c; text-align: right; margin-top: 30px; }
     </style>
 </head>
 <body>
@@ -138,14 +114,13 @@
     <div id="auth-ui">
         <div class="envelope-icon">✉️</div>
         <h3>Canım Ablama...</h3>
-        <p style="color: #718096; font-size: 0.9rem;">Sana özel bu mektubu açmak için şifreyi gir:</p>
-        <input type="text" id="password" placeholder="Şifreyi buraya yaz...">
-        <br>
+        <p style="color: #718096; font-size: 0.9rem;">Mektubu açmak için şifreyi gir:</p>
+        <input type="text" id="password" placeholder="Şifre nedir?">
+        <div id="error-msg">Ablam olduğuna emin misin? 😊</div>
         <button onclick="checkPassword()">Mektubu Oku ❤️</button>
     </div>
 
     <div id="secret-content">
-        <div class="heart-badge">❤️</div>
         <h2>Canım Ablam, ✨</h2>
         <div class="long-message">
             Bazen sana bunu yeterince söyleyemiyorum ama iyi ki varsın. Hayatımda senin gibi birinin olması gerçekten büyük bir şans. Ne zaman zor bir an yaşasam, bilmesen bile varlığın bana güç veriyor. Sen sadece ablam değil, aynı zamanda yol göstericim, sırdaşım ve en güvenli limanımsın.
@@ -161,44 +136,51 @@
 
     <script>
         function checkPassword() {
-            const pass = document.getElementById('password').value;
-            // ŞİFRE: Ponçik
-            if (pass.toLowerCase() === "ponçik" || pass === "Ponçik") {
-                document.getElementById('auth-ui').style.display = 'none';
-                const content = document.getElementById('secret-content');
-                content.style.display = 'block';
-
-                // Kutlama Şöleni
+            const passInput = document.getElementById('password');
+            const errorMsg = document.getElementById('error-msg');
+            const authUi = document.getElementById('auth-ui');
+            
+            // Şifre Kontrolü
+            if (passInput.value.toLowerCase() === "ponçik") {
+                authUi.style.display = 'none';
+                document.getElementById('secret-content').style.display = 'block';
                 fireworks();
             } else {
-                alert("Yanlış şifre! İpucu: P... ile başlıyor 😊");
+                // Hata durumu: Sallanma ve nazik mesaj
+                authUi.classList.add('shake');
+                errorMsg.style.opacity = '1';
+                
+                // Animasyonu tekrar edebilmesi için sınıfa süre sonunda kaldırıyoruz
+                setTimeout(() => {
+                    authUi.classList.remove('shake');
+                }, 500);
             }
         }
 
         function fireworks() {
-            var duration = 10 * 1000;
-            var animationEnd = Date.now() + duration;
+            var duration = 8 * 1000;
+            var end = Date.now() + duration;
 
-            var interval = setInterval(function() {
-                var timeLeft = animationEnd - Date.now();
-                if (timeLeft <= 0) return clearInterval(interval);
-
-                // Renkli konfetiler ve kalpler
+            (function frame() {
                 confetti({
-                    particleCount: 5,
+                    particleCount: 3,
                     angle: 60,
                     spread: 55,
                     origin: { x: 0 },
-                    colors: ['#ff4d6d', '#ff8fa3', '#ffb3c1', '#ffffff']
+                    colors: ['#ff4d6d', '#ffffff']
                 });
                 confetti({
-                    particleCount: 5,
+                    particleCount: 3,
                     angle: 120,
                     spread: 55,
                     origin: { x: 1 },
-                    colors: ['#ff4d6d', '#ff8fa3', '#ffb3c1', '#ffffff']
+                    colors: ['#ff4d6d', '#ffffff']
                 });
-            }, 150);
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
         }
     </script>
 </body>
